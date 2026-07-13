@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📖 Food Delivery Bot — Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:     #070c18; --bg2:    #0c1424; --panel:  #0d1628;
+      --border: #172035; --cyan:   #00e5ff; --gold:   #ffb300;
+      --green:  #00e676; --red:    #ff1744; --violet: #b388ff;
+      --orange: #ff6d00; --text:   #cfd8dc; --text2:  #90a4ae;
+      --dim:    #4a6070;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;line-height:1.7;overflow-x:hidden;}
+
+    /* SCANLINES */
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+      background:repeating-linear-gradient(0deg,transparent 0,transparent 2px,rgba(0,229,255,0.008) 2px,rgba(0,229,255,0.008) 4px);}
+
+    /* NAV */
+    nav{position:sticky;top:0;z-index:100;background:rgba(7,12,24,0.95);border-bottom:1px solid var(--border);
+      backdrop-filter:blur(8px);padding:10px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+    .nav-brand{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:3px;font-weight:700;white-space:nowrap;}
+    .nav-links{display:flex;gap:8px;flex-wrap:wrap;}
+    .nav-link{font-family:'Share Tech Mono',monospace;font-size:9.5px;color:var(--dim);padding:4px 10px;
+      border-radius:12px;border:1px solid transparent;text-decoration:none;letter-spacing:1px;transition:all 0.15s;}
+    .nav-link:hover{color:var(--cyan);border-color:rgba(0,229,255,0.3);}
+    .nav-back{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:9.5px;color:var(--gold);
+      padding:4px 12px;border-radius:12px;border:1px solid rgba(255,179,0,0.35);text-decoration:none;transition:all 0.15s;}
+    .nav-back:hover{background:rgba(255,179,0,0.1);}
+
+    /* HERO */
+    .hero{text-align:center;padding:60px 24px 40px;position:relative;overflow:hidden;}
+    .hero::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+      width:60%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
+    .hero-badge{display:inline-block;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);
+      border-radius:4px;padding:4px 18px;font-family:'Share Tech Mono',monospace;font-size:10px;
+      color:var(--cyan);letter-spacing:3px;margin-bottom:20px;}
+    .hero h1{font-size:clamp(24px,5vw,52px);font-weight:900;letter-spacing:2px;text-transform:uppercase;
+      color:var(--text);text-shadow:0 0 30px rgba(0,229,255,0.3);}
+    .hero h1 span{color:var(--gold);text-shadow:0 0 20px rgba(255,179,0,0.5);}
+    .hero-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);margin-top:10px;letter-spacing:2px;}
+    .hero-version{display:inline-block;background:rgba(179,136,255,0.1);border:1px solid rgba(179,136,255,0.3);
+      border-radius:3px;padding:2px 10px;font-family:'Share Tech Mono',monospace;font-size:9px;
+      color:var(--violet);letter-spacing:2px;margin-top:12px;}
+
+    /* LAYOUT */
+    .doc-layout{display:grid;grid-template-columns:220px 1fr;gap:0;max-width:1200px;margin:0 auto;padding:0 0 60px;}
+    @media(max-width:800px){.doc-layout{grid-template-columns:1fr;}.sidebar{display:none;}}
+
+    /* SIDEBAR */
+    .sidebar{padding:32px 0 32px 20px;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;}
+    .sidebar::-webkit-scrollbar{width:3px;}.sidebar::-webkit-scrollbar-thumb{background:var(--border);}
+    .sb-section{margin-bottom:20px;}
+    .sb-title{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:3px;
+      text-transform:uppercase;padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:8px;}
+    .sb-link{display:block;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text2);
+      padding:4px 8px;border-radius:4px;text-decoration:none;letter-spacing:1px;transition:all 0.12s;}
+    .sb-link:hover{color:var(--cyan);background:rgba(0,229,255,0.06);}
+
+    /* CONTENT */
+    .doc-content{padding:32px 32px 32px 24px;}
+    .doc-section{margin-bottom:56px;scroll-margin-top:70px;}
+    .doc-section h2{font-size:22px;font-weight:900;letter-spacing:2px;color:var(--cyan);
+      text-transform:uppercase;margin-bottom:18px;padding-bottom:10px;
+      border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .doc-section h2 .sec-icon{font-size:24px;}
+    .doc-section h3{font-size:14px;font-weight:800;color:var(--gold);margin:24px 0 10px;letter-spacing:1px;text-transform:uppercase;}
+    .doc-section p{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.8;}
+    .doc-section p b{color:var(--text);}
+
+    /* CARDS */
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:16px 0;}
+    .feature-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;transition:border-color 0.2s;}
+    .feature-card:hover{border-color:rgba(0,229,255,0.3);}
+    .fc-icon{font-size:26px;margin-bottom:8px;display:block;}
+    .fc-title{font-family:'Exo 2',sans-serif;font-weight:800;font-size:12px;color:var(--cyan);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+    .fc-body{font-size:11px;color:var(--text2);line-height:1.65;}
+
+    /* TABLE */
+    .doc-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12px;}
+    .doc-table th{background:var(--bg2);border:1px solid var(--border);padding:8px 12px;
+      font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:2px;text-align:left;}
+    .doc-table td{border:1px solid var(--border);padding:8px 12px;color:var(--text2);vertical-align:top;}
+    .doc-table tr:hover td{background:rgba(0,229,255,0.03);}
+
+    /* CODE */
+    .code-block{background:var(--bg2);border:1px solid var(--border);border-radius:6px;
+      padding:14px 16px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--green);
+      line-height:1.7;overflow-x:auto;margin:12px 0;white-space:pre;}
+    .code-inline{background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);
+      border-radius:3px;padding:1px 6px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--cyan);}
+
+    /* CALLOUT */
+    .callout{border-radius:6px;padding:12px 16px;margin:14px 0;font-size:12px;line-height:1.7;display:flex;gap:10px;}
+    .callout-info  {background:rgba(0,229,255,0.07); border:1px solid rgba(0,229,255,0.25); color:var(--text2);}
+    .callout-warn  {background:rgba(255,179,0,0.07); border:1px solid rgba(255,179,0,0.3);  color:var(--text2);}
+    .callout-danger{background:rgba(255,23,68,0.07);  border:1px solid rgba(255,23,68,0.25); color:var(--text2);}
+    .callout-icon  {font-size:18px;flex-shrink:0;margin-top:1px;}
+    .callout b{color:var(--text);}
+
+    /* STEPS */
+    .steps{counter-reset:step;list-style:none;margin:14px 0;}
+    .steps li{counter-increment:step;display:flex;gap:12px;margin-bottom:12px;font-size:12px;color:var(--text2);}
+    .steps li::before{content:counter(step);font-family:'Share Tech Mono',monospace;font-size:11px;
+      color:var(--bg);background:var(--cyan);border-radius:50%;width:22px;height:22px;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;margin-top:1px;}
+
+    /* BADGE */
+    .badge{display:inline-block;padding:2px 8px;border-radius:3px;font-family:'Share Tech Mono',monospace;
+      font-size:9px;letter-spacing:1px;font-weight:700;text-transform:uppercase;}
+    .badge-cyan  {background:rgba(0,229,255,0.12); color:var(--cyan);  border:1px solid rgba(0,229,255,0.3);}
+    .badge-gold  {background:rgba(255,179,0,0.12); color:var(--gold);  border:1px solid rgba(255,179,0,0.3);}
+    .badge-green {background:rgba(0,230,118,0.12); color:var(--green); border:1px solid rgba(0,230,118,0.3);}
+    .badge-red   {background:rgba(255,23,68,0.12);  color:var(--red);   border:1px solid rgba(255,23,68,0.3);}
+    .badge-violet{background:rgba(179,136,255,0.12);color:var(--violet);border:1px solid rgba(179,136,255,0.3);}
+    .badge-orange{background:rgba(255,109,0,0.12); color:var(--orange);border:1px solid rgba(255,109,0,0.3);}
+
+    /* FLOW DIAGRAM */
+    .flow{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:14px 0;}
+    .flow-box{background:var(--bg2);border:1px solid var(--border);border-radius:6px;
+      padding:8px 12px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text2);}
+    .flow-box.cyan  {border-color:rgba(0,229,255,0.4);color:var(--cyan);}
+    .flow-box.gold  {border-color:rgba(255,179,0,0.4);color:var(--gold);}
+    .flow-box.green {border-color:rgba(0,230,118,0.4);color:var(--green);}
+    .flow-box.red   {border-color:rgba(255,23,68,0.4);color:var(--red);}
+    .flow-box.violet{border-color:rgba(179,136,255,0.4);color:var(--violet);}
+    .flow-arrow{color:var(--dim);font-size:16px;}
+
+    /* FOOTER */
+    footer{text-align:center;padding:30px 20px;border-top:1px solid var(--border);
+      font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:2px;}
+    footer a{color:var(--cyan);text-decoration:none;}
+  </style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav>
+  <div class="nav-brand">🍔 FOOD DELIVERY BOT</div>
+  <div class="nav-links">
+    <a href="#overview"   class="nav-link">Overview</a>
+    <a href="#features"   class="nav-link">Features</a>
+    <a href="#pathfinding"class="nav-link">Pathfinding</a>
+    <a href="#controls"   class="nav-link">Controls</a>
+    <a href="#moving-obs" class="nav-link">Moving Obs</a>
+    <a href="#subgoals"   class="nav-link">SubGoals</a>
+    <a href="#manual"     class="nav-link">Manual Mode</a>
+    <a href="#esp"        class="nav-link">ESP8266</a>
+    <a href="#keyboard"   class="nav-link">Keyboard</a>
+    <a href="#arch"       class="nav-link">Architecture</a>
+  </div>
+  <a href="index.html" class="nav-back">← Back to Sim</a>
+</nav>
+
+<!-- ══ HERO ══ -->
+<div class="hero">
+  <div class="hero-badge">📖 PROJECT DOCUMENTATION</div>
+  <h1>Food Delivery <span>Bot</span><br>Live Simulation</h1>
+  <div class="hero-sub">D* LITE PATHFINDING · ESP8266 BRIDGE · REAL-TIME OBSTACLE DETECTION</div>
+  <div class="hero-version">v6.0.0 · Web + Hardware</div>
+</div>
+
+<!-- ══ DOC LAYOUT ══ -->
+<div class="doc-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-title">Getting Started</div>
+      <a href="#overview"   class="sb-link">📋 Overview</a>
+      <a href="#features"   class="sb-link">✨ Features</a>
+      <a href="#quickstart" class="sb-link">🚀 Quick Start</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-title">Core System</div>
+      <a href="#pathfinding" class="sb-link">🧠 D* Lite Algorithm</a>
+      <a href="#grid"        class="sb-link">🗺 Grid & Editor</a>
+      <a href="#controls"    class="sb-link">🎮 Drive Modes</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-title">Features</div>
+      <a href="#moving-obs"  class="sb-link">🔄 Moving Obstacles</a>
+      <a href="#subgoals"    class="sb-link">📍 SubGoals & Priority</a>
+      <a href="#manual"      class="sb-link">🕹 Manual Mode Guidance</a>
+      <a href="#delivery"    class="sb-link">🍔 Delivery Report</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-title">Hardware</div>
+      <a href="#esp"    class="sb-link">⚡ ESP8266 Bridge</a>
+      <a href="#ws"     class="sb-link">🔌 WebSocket</a>
+      <a href="#http"   class="sb-link">🌐 HTTP REST</a>
+      <a href="#mqtt"   class="sb-link">📡 MQTT</a>
+    </div>
+    <div class="sb-section">
+      <div class="sb-title">Reference</div>
+      <a href="#keyboard" class="sb-link">⌨️ Keyboard Shortcuts</a>
+      <a href="#arch"     class="sb-link">🏗 Architecture</a>
+      <a href="#colors"   class="sb-link">🎨 Color Legend</a>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="doc-content">
+
+    <!-- ── OVERVIEW ── -->
+    <section class="doc-section" id="overview">
+      <h2><span class="sec-icon">📋</span> Project Overview</h2>
+      <p>
+        <b>Food Delivery Bot</b> is a real-time autonomous navigation simulator built entirely in the browser. It simulates a delivery robot navigating a 20×20 grid from a start position to a burger goal (🍔), avoiding obstacles and collecting sub-goals along the way.
+      </p>
+      <p>
+        The simulation uses the <b>D* Lite</b> incremental pathfinding algorithm, which replans routes on-the-fly when new obstacles appear — without restarting from scratch. The project also includes a full <b>ESP8266 hardware bridge</b> that lets you control a real physical robot using WebSocket, HTTP, or MQTT.
+      </p>
+      <div class="callout callout-info">
+        <span class="callout-icon">ℹ️</span>
+        <div>This project runs entirely in a single HTML+CSS+JS file. No build system or server required. Open <code class="code-inline">index.html</code> in any modern browser.</div>
+      </div>
+
+      <div class="card-grid">
+        <div class="feature-card">
+          <span class="fc-icon">🧠</span>
+          <div class="fc-title">D* Lite Pathfinding</div>
+          <div class="fc-body">Incremental A* replanner — only updates what changed, not the full grid.</div>
+        </div>
+        <div class="feature-card">
+          <span class="fc-icon">🔄</span>
+          <div class="fc-title">Moving Obstacles</div>
+          <div class="fc-body">Dynamic obstacles bounce between walls triggering live replanning.</div>
+        </div>
+        <div class="feature-card">
+          <span class="fc-icon">📍</span>
+          <div class="fc-title">Smart SubGoals</div>
+          <div class="fc-body">Auto-sorted by nearest-neighbour. Far subgoals trigger priority check.</div>
+        </div>
+        <div class="feature-card">
+          <span class="fc-icon">⚡</span>
+          <div class="fc-title">ESP8266 Bridge</div>
+          <div class="fc-body">WebSocket, HTTP REST, and MQTT support for real robot control.</div>
+        </div>
+        <div class="feature-card">
+          <span class="fc-icon">🕹</span>
+          <div class="fc-title">Manual Guidance</div>
+          <div class="fc-body">Deviation warnings, efficiency tracking, and visual shortest-path overlay.</div>
+        </div>
+        <div class="feature-card">
+          <span class="fc-icon">🎨</span>
+          <div class="fc-title">Dual Theme</div>
+          <div class="fc-body">Dark (cyan/gold) and light pink theme. All canvas colors switch live.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FEATURES ── -->
+    <section class="doc-section" id="features">
+      <h2><span class="sec-icon">✨</span> Feature List</h2>
+
+      <h3>v6.0.0 — New Features</h3>
+      <table class="doc-table">
+        <tr><th>Feature</th><th>Description</th><th>Status</th></tr>
+        <tr><td>🔄 Moving Obstacles</td><td>Obstacles that bounce left↔right or top↔bottom, triggering live D* replanning</td><td><span class="badge badge-green">New</span></td></tr>
+        <tr><td>⚠ Manual Deviation Warning</td><td>System log warns when you stray from the shortest path, with step count diff</td><td><span class="badge badge-green">New</span></td></tr>
+        <tr><td>📊 Wasted Steps Report</td><td>Mission complete dialog shows extra steps taken vs. optimal path</td><td><span class="badge badge-green">New</span></td></tr>
+        <tr><td>🔒 SubGoal Lock</td><td>SubGoal button disabled during simulation, re-enabled on stop/complete</td><td><span class="badge badge-green">New</span></td></tr>
+        <tr><td>🔀 SubGoal Auto-Sort</td><td>On Start Nav, subgoals reordered by nearest-neighbour for efficiency</td><td><span class="badge badge-green">New</span></td></tr>
+        <tr><td>📍 Priority Check Dialog</td><td>If a subgoal segment > 10 cells, ask user: High Priority / Skip / Keep Normal</td><td><span class="badge badge-green">New</span></td></tr>
+        <tr><td>📖 Documentation</td><td>This page — full project reference opened from the Docs button in header</td><td><span class="badge badge-green">New</span></td></tr>
+      </table>
+
+      <h3>Previous Features</h3>
+      <table class="doc-table">
+        <tr><th>Feature</th><th>Version</th></tr>
+        <tr><td>⛔ Error window (no space to travel)</td><td><span class="badge badge-cyan">v5</span></td></tr>
+        <tr><td>↔ Drive Mode parallel to grid canvas</td><td><span class="badge badge-cyan">v5</span></td></tr>
+        <tr><td>▓ Violet completed path after delivery</td><td><span class="badge badge-cyan">v5</span></td></tr>
+        <tr><td>🎲 Random obstacles with path guarantee</td><td><span class="badge badge-cyan">v4</span></td></tr>
+        <tr><td>☀️/🌙 Light/Dark theme toggle</td><td><span class="badge badge-cyan">v4</span></td></tr>
+        <tr><td>📍 Manual shortest-path guide panel</td><td><span class="badge badge-cyan">v4</span></td></tr>
+        <tr><td>D* Lite pathfinding</td><td><span class="badge badge-violet">v1</span></td></tr>
+        <tr><td>ESP8266 WebSocket/HTTP/MQTT</td><td><span class="badge badge-violet">v1</span></td></tr>
+      </table>
+    </section>
+
+    <!-- ── QUICK START ── -->
+    <section class="doc-section" id="quickstart">
+      <h2><span class="sec-icon">🚀</span> Quick Start</h2>
+      <ol class="steps">
+        <li>Open <code class="code-inline">index.html</code> in your browser (Chrome/Firefox/Edge).</li>
+        <li>The grid initialises with bot at (1,1) and goal 🍔 at (18,18).</li>
+        <li>Use <b>Map Editor</b> buttons to place obstacles, subgoals, or change start/goal.</li>
+        <li>Select <b>Manual</b> or <b>Auto</b> mode in the Drive Mode panel.</li>
+        <li>In Manual: use the D-pad or keyboard arrow keys to move the bot.</li>
+        <li>In Auto: press <b>▶ START NAV</b> to begin autonomous navigation.</li>
+        <li>When the bot reaches 🍔 the delivery complete window appears and the violet path is painted.</li>
+      </ol>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠️</span>
+        <div><b>SubGoal tip:</b> Add subgoals before starting navigation. The SubGoal button is automatically <b>disabled</b> while the simulation runs and re-enabled on stop or mission complete.</div>
+      </div>
+    </section>
+
+    <!-- ── PATHFINDING ── -->
+    <section class="doc-section" id="pathfinding">
+      <h2><span class="sec-icon">🧠</span> D* Lite Pathfinding</h2>
+      <p>
+        D* Lite (Dynamic A* Lite) is an incremental heuristic search algorithm designed for real-time replanning. Unlike plain A*, it only updates the portion of the search graph that changed when a new obstacle is detected — making it extremely efficient for dynamic environments.
+      </p>
+
+      <h3>How This Implementation Works</h3>
+      <p>
+        The sim uses an <b>A* replanner</b> that runs a full A* search from the current bot position through all subgoals to the goal. This is triggered on every:
+      </p>
+      <ul style="margin:8px 0 12px 20px;font-size:12px;color:var(--text2);">
+        <li style="margin-bottom:5px">New obstacle placed on grid</li>
+        <li style="margin-bottom:5px">Moving obstacle that shifts into a new cell</li>
+        <li style="margin-bottom:5px">ESP8266 sensor packet received (obstacle in front of bot)</li>
+        <li style="margin-bottom:5px">Mode switch from Manual → Auto</li>
+        <li>SubGoal collected (replans remaining route)</li>
+      </ul>
+
+      <h3>Path Computation Flow</h3>
+      <div class="flow">
+        <div class="flow-box cyan">Bot Position</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box gold">SubGoal S1</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box gold">SubGoal S2</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box gold">… Sn</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box green">🍔 Goal</div>
+      </div>
+      <p>Each segment is computed with A* independently, then stitched together into one full path.</p>
+
+      <h3>Heuristic</h3>
+      <p>Manhattan distance: <code class="code-inline">|Δx| + |Δy|</code> — appropriate for 4-directional grid movement.</p>
+
+      <h3>Complexity</h3>
+      <table class="doc-table">
+        <tr><th>Property</th><th>Value</th></tr>
+        <tr><td>Grid size</td><td>20 × 20 = 400 cells</td></tr>
+        <tr><td>Directions</td><td>4 (up, down, left, right)</td></tr>
+        <tr><td>Time per replan</td><td>O(N log N) — typically &lt;1ms on modern CPU</td></tr>
+        <tr><td>Space</td><td>O(N) open+closed sets</td></tr>
+      </table>
+    </section>
+
+    <!-- ── GRID ── -->
+    <section class="doc-section" id="grid">
+      <h2><span class="sec-icon">🗺</span> Grid & Map Editor</h2>
+      <p>The grid is a 20×20 array. Border cells (row 0, row 19, col 0, col 19) are always obstacles (walls). Interior cells can be free (0) or obstacle (1).</p>
+
+      <h3>Editor Tools</h3>
+      <table class="doc-table">
+        <tr><th>Button</th><th>Action</th><th>Restriction</th></tr>
+        <tr><td><span class="badge badge-green">🟢 Start</span></td><td>Move bot start position</td><td>Cannot place on obstacle</td></tr>
+        <tr><td><span class="badge badge-gold">🟡 Goal</span></td><td>Move delivery goal 🍔</td><td>Cannot place on obstacle</td></tr>
+        <tr><td><span class="badge badge-cyan">🔵 SubGoal</span></td><td>Add a waypoint the bot must visit</td><td>Disabled during simulation</td></tr>
+        <tr><td><span class="badge badge-red">🔴 Obstacle</span></td><td>Place a static obstacle</td><td>Cannot block bot/start/goal</td></tr>
+        <tr><td><span class="badge">✕ Erase</span></td><td>Remove obstacle or subgoal</td><td>Cannot erase border cells</td></tr>
+        <tr><td><span class="badge badge-orange">🎲 Random</span></td><td>Place 30 random obstacles (path guaranteed)</td><td>Never blocks critical cells</td></tr>
+        <tr><td><span class="badge badge-orange">🔄 Moving</span></td><td>Toggle 5 bouncing moving obstacles</td><td>Cleared on Clear All</td></tr>
+        <tr><td><span class="badge badge-cyan">↺ Clear All</span></td><td>Full reset of map and bot</td><td>—</td></tr>
+      </table>
+    </section>
+
+    <!-- ── CONTROLS ── -->
+    <section class="doc-section" id="controls">
+      <h2><span class="sec-icon">🎮</span> Drive Modes</h2>
+      <p>The Drive Mode panel sits <b>parallel to the grid</b> on the left side, always visible. Toggle between Manual and Auto without scrolling.</p>
+
+      <h3>Manual Mode</h3>
+      <p>Control the bot with the D-pad or keyboard. The dashed cyan line shows the <b>optimal shortest path</b> to the goal. The path panel shows:</p>
+      <ul style="margin:8px 0 12px 20px;font-size:12px;color:var(--text2);">
+        <li><b style="color:var(--cyan)">OPTIMAL</b> — Shortest possible steps remaining</li>
+        <li><b style="color:var(--gold)">YOUR STEPS</b> — Steps you have taken</li>
+        <li><b style="color:var(--red)">EXTRA</b> — How many steps you wasted</li>
+        <li><b style="color:var(--green)">EFFICIENCY</b> — % score (100% = perfect)</li>
+      </ul>
+
+      <h3>Auto Mode</h3>
+      <p>The bot autonomously follows the D*-computed path. Press <b>▶ START NAV</b> to begin. Before running, the simulation will:</p>
+      <ol class="steps" style="margin-left:0;">
+        <li>Check all subgoal segment distances — any &gt; 10 cells triggers priority dialog.</li>
+        <li>Sort remaining subgoals using nearest-neighbour algorithm.</li>
+        <li>Compute full path and start traversal.</li>
+      </ol>
+
+      <h3>Speed Control</h3>
+      <p>The speed slider sets traversal rate from <b>1 cell/sec</b> to <b>10 cells/sec</b>. Can be adjusted while running.</p>
+    </section>
+
+    <!-- ── MOVING OBSTACLES ── -->
+    <section class="doc-section" id="moving-obs">
+      <h2><span class="sec-icon">🔄</span> Moving Obstacles</h2>
+      <p>
+        Click <b>🔄 Moving Obstacles</b> in the Map Editor to place 5 dynamic obstacles. Each one is randomly assigned either <b>horizontal</b> (left ↔ right) or <b>vertical</b> (top ↔ bottom) movement within a bounded lane.
+      </p>
+
+      <h3>Behaviour</h3>
+      <table class="doc-table">
+        <tr><th>Property</th><th>Value</th></tr>
+        <tr><td>Step interval</td><td>Every 600ms</td></tr>
+        <tr><td>Movement axes</td><td>Horizontal (H) or Vertical (V) — random per obstacle</td></tr>
+        <tr><td>Bounce</td><td>Reverses direction at lane boundaries or blocked cells</td></tr>
+        <tr><td>Collision avoidance</td><td>Never enters bot, start, goal, or subgoal cells</td></tr>
+        <tr><td>D* replan trigger</td><td>If bot's next step is blocked by moving obstacle, instant replan</td></tr>
+      </table>
+
+      <h3>Visual</h3>
+      <p>Moving obstacles show an <b>orange pulsing ring</b> and a directional arrow (→ ← ↑ ↓) so you can see their movement direction at a glance.</p>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠️</span>
+        <div>Moving obstacles are cleared when you press <b>↺ Clear All</b>. Toggle them off with the same button (it switches between "Moving Obstacles" and "Stop Moving Obs").</div>
+      </div>
+    </section>
+
+    <!-- ── SUBGOALS ── -->
+    <section class="doc-section" id="subgoals">
+      <h2><span class="sec-icon">📍</span> SubGoals & Priority System</h2>
+      <p>SubGoals are intermediate waypoints the bot must visit before reaching the final goal. They appear on the grid as blue <b>S1, S2, …</b> cells (high-priority subgoals are shown in orange with a ★ star).</p>
+
+      <h3>Placing SubGoals</h3>
+      <ol class="steps">
+        <li>Select <span class="badge badge-cyan">🔵 SubGoal</span> in the Map Editor.</li>
+        <li>Click any free cell on the grid. SubGoal S1, S2, … are added in order.</li>
+        <li>The button is <b>automatically disabled</b> when simulation starts and re-enabled on stop.</li>
+      </ol>
+
+      <h3>Auto-Sort on Start Nav</h3>
+      <p>When you press ▶ START NAV, subgoals are automatically reordered by a <b>nearest-neighbour TSP approximation</b> — starting from the bot's current position, always picking the closest remaining subgoal next. This avoids inefficient zig-zag routes.</p>
+
+      <div class="flow">
+        <div class="flow-box cyan">Bot (1,1)</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box gold">S2 (nearest)</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box gold">S1 (next nearest)</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box green">Goal</div>
+      </div>
+
+      <h3>Priority Check Dialog</h3>
+      <p>Before navigation starts, if any subgoal-to-subgoal segment (or start→subgoal) requires <b>more than 10 A* steps</b>, a priority dialog appears for that subgoal:</p>
+
+      <table class="doc-table">
+        <tr><th>Option</th><th>Effect</th></tr>
+        <tr><td>★ High Priority — Include</td><td>Marks the subgoal as high priority (orange ★). Included regardless of distance.</td></tr>
+        <tr><td>✕ Skip SubGoal</td><td>Removes the subgoal from the route entirely.</td></tr>
+        <tr><td>▶ Keep Normal</td><td>Keeps the subgoal but at normal priority — included in route.</td></tr>
+      </table>
+
+      <div class="callout callout-info">
+        <span class="callout-icon">ℹ️</span>
+        <div>The dialog cycles through all "too far" subgoals one at a time. After resolving each, the nearest-neighbour sort is applied and navigation begins.</div>
+      </div>
+    </section>
+
+    <!-- ── MANUAL MODE ── -->
+    <section class="doc-section" id="manual">
+      <h2><span class="sec-icon">🕹</span> Manual Mode Guidance</h2>
+
+      <h3>Shortest Path Overlay</h3>
+      <p>In Manual mode, a <b>dashed cyan line</b> constantly shows the optimal route from the bot's current position to the goal (via subgoals). This recalculates after every move.</p>
+
+      <h3>Deviation Warnings</h3>
+      <p>If you move in a direction that is <b>not the next step</b> on the optimal path, the System Log shows a warning:</p>
+      <div class="code-block">⚠ Deviation! Optimal next: (5,3) — you went (4,3). Optimal remaining: 12 steps</div>
+      <p>Warnings are rate-limited to every 3 steps to avoid log spam.</p>
+
+      <h3>Orange Trail</h3>
+      <p>Every cell the bot visits is marked in <b>orange</b> as a breadcrumb trail, showing where you've been.</p>
+
+      <h3>Path Panel Metrics</h3>
+      <table class="doc-table">
+        <tr><th>Metric</th><th>Meaning</th><th>Color</th></tr>
+        <tr><td>OPTIMAL</td><td>Fewest steps possible from current position to goal</td><td><span style="color:var(--cyan)">Cyan</span></td></tr>
+        <tr><td>YOUR STEPS</td><td>Steps you have taken so far</td><td><span style="color:var(--gold)">Gold</span></td></tr>
+        <tr><td>EXTRA</td><td>Steps taken beyond optimal (max(0, yours – optimal))</td><td><span style="color:var(--red)">Red</span></td></tr>
+        <tr><td>EFFICIENCY</td><td>optimal / max(yours, optimal) × 100%</td><td>Green/Gold/Red</td></tr>
+      </table>
+    </section>
+
+    <!-- ── DELIVERY ── -->
+    <section class="doc-section" id="delivery">
+      <h2><span class="sec-icon">🍔</span> Delivery Complete Report</h2>
+      <p>When the bot reaches the goal, the <b>Delivery Complete</b> window appears and the violet path is painted on the grid.</p>
+
+      <h3>Report Contents</h3>
+      <table class="doc-table">
+        <tr><th>Metric</th><th>Description</th></tr>
+        <tr><td>STEPS TAKEN</td><td>Total steps the bot moved</td></tr>
+        <tr><td>OPTIMAL PATH</td><td>Shortest possible path at mission start</td></tr>
+        <tr><td>⚠ WASTED STEPS</td><td>Extra steps beyond optimal (shown in red if &gt; 0)</td></tr>
+        <tr><td>EFFICIENCY</td><td>% score. 100% = perfect path. Green/Gold/Red colour coded.</td></tr>
+        <tr><td>REPLANS</td><td>How many times D* had to replan due to obstacles</td></tr>
+        <tr><td>TIME</td><td>Elapsed mission time in seconds</td></tr>
+      </table>
+
+      <h3>Violet Completed Path</h3>
+      <p>The bot's actual route is permanently painted in <b>violet/purple</b> with a glowing line, dot waypoints, and a "✓ DELIVERED" label at the midpoint. It stays visible until you press Clear All.</p>
+    </section>
+
+    <!-- ── ESP8266 ── -->
+    <section class="doc-section" id="esp">
+      <h2><span class="sec-icon">⚡</span> ESP8266 Hardware Bridge</h2>
+      <p>The sim can control a real ESP8266-based robot over your local WiFi network. Three communication protocols are supported.</p>
+
+      <div id="ws">
+        <h3>WebSocket (Recommended)</h3>
+        <p>Bi-directional, low-latency. The ESP runs a WebSocket server and the browser connects as a client.</p>
+        <div class="code-block">#include &lt;ESP8266WiFi.h&gt;
+#include &lt;WebSocketsServer.h&gt;
+WebSocketsServer webSocket = WebSocketsServer(80);
+// Receive: {"cmd":"FORWARD"} | "BACKWARD" | "LEFT" | "RIGHT" | "STOP"
+// Send:    {"type":"obstacle","dist":12.5,"unit":"cm"}</div>
+
+        <div class="callout callout-info">
+          <span class="callout-icon">ℹ️</span>
+          <div>When the ESP sends an obstacle packet, the browser immediately places an obstacle in the cell in front of the bot and triggers a D* replan.</div>
+        </div>
+      </div>
+
+      <div id="http">
+        <h3>HTTP REST (Polling)</h3>
+        <p>The browser polls <code class="code-inline">GET /status</code> every 500ms and sends commands via <code class="code-inline">POST /cmd</code>.</p>
+        <div class="code-block">// Command endpoint
+POST http://&lt;esp-ip&gt;/cmd
+Body: {"cmd":"FORWARD"}
+
+// Status endpoint  
+GET http://&lt;esp-ip&gt;/status
+Returns: {"obstacle":true,"dist":14.2}</div>
+      </div>
+
+      <div id="mqtt">
+        <h3>MQTT (Wireless Broker)</h3>
+        <p>Uses <code class="code-inline">broker.hivemq.com</code> (public broker). Include mqtt.js in your page.</p>
+        <div class="code-block">// Subscribe: foodbot/obstacle → receive obstacle events
+// Publish:   foodbot/cmd    → send motor commands</div>
+      </div>
+
+      <h3>Sensor Setup</h3>
+      <p>The ESP uses an <b>HC-SR04 ultrasonic sensor</b> (Trig: D6, Echo: D7) that scans every 300ms. If an object is detected closer than 20cm, it sends an obstacle packet.</p>
+    </section>
+
+    <!-- ── KEYBOARD ── -->
+    <section class="doc-section" id="keyboard">
+      <h2><span class="sec-icon">⌨️</span> Keyboard Shortcuts</h2>
+      <table class="doc-table">
+        <tr><th>Key</th><th>Action</th><th>Mode</th></tr>
+        <tr><td><code class="code-inline">↑ / W</code></td><td>Move bot up (FORWARD)</td><td>Manual</td></tr>
+        <tr><td><code class="code-inline">↓ / S</code></td><td>Move bot down (BACKWARD)</td><td>Manual</td></tr>
+        <tr><td><code class="code-inline">← / A</code></td><td>Move bot left</td><td>Manual</td></tr>
+        <tr><td><code class="code-inline">→ / D</code></td><td>Move bot right</td><td>Manual</td></tr>
+        <tr><td><code class="code-inline">Space</code></td><td>Stop bot (emergency stop)</td><td>Both</td></tr>
+        <tr><td><code class="code-inline">Escape</code></td><td>Close any open dialog/modal</td><td>Both</td></tr>
+      </table>
+    </section>
+
+    <!-- ── ARCHITECTURE ── -->
+    <section class="doc-section" id="arch">
+      <h2><span class="sec-icon">🏗</span> Architecture</h2>
+
+      <h3>File Structure</h3>
+      <div class="code-block">food-delivery-bot/
+├── index.html          ← Main UI, all dialogs, ESP code modal
+├── style.css           ← Dark/light themes, all component styles
+├── app.js              ← Game logic, pathfinding, ESP bridge
+├── docs.html           ← This documentation page
+└── food-delivery-bot.html  ← Self-contained single-file bundle</div>
+
+      <h3>Key Data Structures</h3>
+      <table class="doc-table">
+        <tr><th>Variable</th><th>Type</th><th>Description</th></tr>
+        <tr><td><code class="code-inline">grid[r][c]</code></td><td>number[][]</td><td>0 = free, 1 = obstacle. 20×20.</td></tr>
+        <tr><td><code class="code-inline">subGoals</code></td><td>{x,y,priority}[]</td><td>Waypoints. priority: 'normal' | 'high'</td></tr>
+        <tr><td><code class="code-inline">botPath</code></td><td>{x,y}[]</td><td>Planned path in auto mode (A* result)</td></tr>
+        <tr><td><code class="code-inline">shortestPath</code></td><td>{x,y}[]</td><td>Optimal path shown in manual mode</td></tr>
+        <tr><td><code class="code-inline">completedPath</code></td><td>{x,y}[]</td><td>Cells actually visited — painted violet on delivery</td></tr>
+        <tr><td><code class="code-inline">movingObs</code></td><td>{x,y,axis,dir,range}[]</td><td>Moving obstacle state</td></tr>
+        <tr><td><code class="code-inline">visitedSet</code></td><td>Set&lt;string&gt;</td><td>"x,y" keys of orange trail cells</td></tr>
+      </table>
+
+      <h3>CSS Variables System</h3>
+      <p>Every colour is a CSS custom property on <code class="code-inline">:root</code> / <code class="code-inline">[data-theme="dark"]</code> / <code class="code-inline">[data-theme="light"]</code>. Canvas drawing reads these at runtime via:</p>
+      <div class="code-block">function cv(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+// Usage: ctx.fillStyle = cv('--trail-color');</div>
+      <p>This allows instant theme switching with zero canvas code changes.</p>
+
+      <div id="colors">
+        <h3>Color Legend</h3>
+        <table class="doc-table">
+          <tr><th>Element</th><th>Color</th><th>Meaning</th></tr>
+          <tr><td>Grid cell A/B</td><td>Dark navy checkerboard</td><td>Free traversable cells</td></tr>
+          <tr><td>Obstacle</td><td>Dark red + X mark</td><td>Impassable cell</td></tr>
+          <tr><td>Start (GO)</td><td><span style="color:var(--green)">■</span> Green</td><td>Bot origin</td></tr>
+          <tr><td>Goal (🍔)</td><td><span style="color:var(--gold)">■</span> Gold pulsing</td><td>Delivery destination</td></tr>
+          <tr><td>SubGoal S1…</td><td><span style="color:#2979ff">■</span> Blue</td><td>Normal priority waypoint</td></tr>
+          <tr><td>SubGoal ★</td><td><span style="color:var(--orange)">■</span> Orange</td><td>High priority waypoint</td></tr>
+          <tr><td>Shortest path</td><td><span style="color:var(--cyan)">‐ ‐</span> Cyan dashed</td><td>Optimal route overlay (manual)</td></tr>
+          <tr><td>Auto path</td><td><span style="color:var(--cyan)">‐ ‐</span> Cyan dashed</td><td>Planned route (auto)</td></tr>
+          <tr><td>Visited trail</td><td><span style="color:var(--orange)">■</span> Orange fill</td><td>Cells the bot has visited</td></tr>
+          <tr><td>Completed path</td><td><span style="color:var(--violet)">■</span> Violet glow</td><td>Full route after delivery</td></tr>
+          <tr><td>Moving obstacle</td><td><span style="color:var(--orange)">□ pulsing ring</span></td><td>Dynamic bouncing obstacle</td></tr>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  FOOD DELIVERY BOT v6.0.0 · D* Lite Pathfinding · ESP8266 Bridge ·
+  <a href="index.html">← Back to Simulation</a>
+</footer>
+
+</body>
+</html>

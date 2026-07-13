@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Food Delivery Bot — Bluetooth Simulation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="scanlines"></div>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="header-top">
+    <div class="header-badge">⬡ AUTONOMOUS NAVIGATION SYSTEM v7.0.0</div>
+    <div class="header-top-actions">
+      <a href="docs.html" target="_blank" class="docs-btn">📖 DOCS</a>
+      <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="themeIcon">☀️</span><span id="themeLabel">LIGHT</span>
+      </button>
+    </div>
+  </div>
+  <h1>🍔 Food Delivery <span>Bot</span> Live Simulation</h1>
+  <div class="header-sub">D* LITE PATHFINDING · BLUETOOTH CONTROL · REAL-TIME OBSTACLE DETECTION</div>
+</header>
+
+<!-- ══ MAIN LAYOUT ══ -->
+<div class="layout">
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="panel-left">
+
+    <!-- MAP EDITOR -->
+    <div class="card">
+      <div class="card-title">▸ Map Editor</div>
+      <div class="edit-grid">
+        <button class="btn btn-green"  onclick="setEdit('start')"    id="eStart">🟢 Start</button>
+        <button class="btn btn-gold"   onclick="setEdit('goal')"     id="eGoal">🟡 Goal</button>
+        <button class="btn btn-blue"   onclick="setEdit('sub')"      id="eSub">🔵 SubGoal</button>
+        <button class="btn btn-red"    onclick="setEdit('obstacle')" id="eObs">🔴 Obstacle</button>
+      </div>
+      <button class="btn btn-orange" onclick="setEdit('erase')"       style="margin-top:5px">✕ Erase Cell</button>
+      <button class="btn btn-random" onclick="placeRandomObstacles()" style="margin-top:3px">🎲 Random Obstacles</button>
+      <button class="btn btn-moving" onclick="toggleMovingObs()"      style="margin-top:3px" id="btnMovingObs">🔄 Moving Obstacles</button>
+      <button class="btn btn-cyan"   onclick="clearMap()"             style="margin-top:3px">↺ Clear All</button>
+      <div class="edit-active-row">ACTIVE: <span id="editMode">NONE</span></div>
+    </div>
+
+    <!-- GRID SIZE -->
+    <div class="card">
+      <div class="card-title">▸ Grid Size</div>
+      <div class="grid-size-wrap">
+        <div class="grid-size-row">
+          <span class="gs-label">SIZE</span>
+          <div class="gs-btns">
+            <button class="gs-btn active" onclick="setGridSize(10)" id="gs10">10×10</button>
+            <button class="gs-btn"        onclick="setGridSize(15)" id="gs15">15×15</button>
+            <button class="gs-btn"        onclick="setGridSize(20)" id="gs20">20×20</button>
+            <button class="gs-btn"        onclick="setGridSize(25)" id="gs25">25×25</button>
+          </div>
+        </div>
+        <div class="grid-size-row" style="margin-top:6px">
+          <span class="gs-label">CUSTOM</span>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <input class="gs-input" id="gsCustom" type="number" min="5" max="40" value="20" placeholder="5-40"/>
+            <button class="btn btn-cyan" style="padding:5px 8px;font-size:9px" onclick="applyCustomGrid()">SET</button>
+          </div>
+        </div>
+        <div class="gs-info">Current: <span id="gsCurrentLabel" class="cyan">10×10</span></div>
+      </div>
+    </div>
+
+    <!-- MISSION STATS -->
+    <div class="card">
+      <div class="card-title">▸ Mission Stats</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-val" id="statSteps">0</div><div class="stat-lbl">STEPS</div></div>
+        <div class="stat-box"><div class="stat-val" id="statObs">0</div><div class="stat-lbl">OBSTACLES</div></div>
+        <div class="stat-box"><div class="stat-val" id="statSubGoals">0</div><div class="stat-lbl">SUBGOALS</div></div>
+        <div class="stat-box"><div class="stat-val" id="statReplans">0</div><div class="stat-lbl">REPLANS</div></div>
+      </div>
+    </div>
+
+    <!-- ALGO INFO -->
+    <div class="card">
+      <div class="card-title">▸ D* Lite Info</div>
+      <div class="algo-info">
+        <b class="cyan">D* Lite</b> replans paths when obstacles appear without full recalculation.
+        <br><br>
+        <span style="color:#2196f3">🔵</span> <b>Bluetooth</b> sends commands to real robot.<br>
+        <span style="color:#ff6d00">🔄 Moving Obs</span> bounce left↔right or top↔bottom.<br>
+        <span class="accent-violet">▓ Violet path</span> shown after delivery.
+      </div>
+    </div>
+
+  </div><!-- /panel-left -->
+
+  <!-- ── CENTER ── -->
+  <div class="center-wrap">
+    <div class="center-top-row">
+
+      <!-- DRIVE MODE PANEL -->
+      <div class="drive-panel card">
+        <div class="card-title">▸ Drive Mode</div>
+        <div class="mode-row">
+          <button class="mode-btn active-manual" id="btnManual" onclick="setMode('manual')">Manual</button>
+          <button class="mode-btn inactive"      id="btnAuto"   onclick="setMode('auto')">Auto</button>
+        </div>
+
+        <!-- MANUAL CONTROLS -->
+        <div id="manualControls">
+          <div class="dpad-wrap">
+            <div class="dpad-row">
+              <div class="dpad-empty"></div>
+              <button class="dpad-btn" onmousedown="manualMove('up')"    ontouchstart="handleTouch(event,'up')">▲</button>
+              <div class="dpad-empty"></div>
+            </div>
+            <div class="dpad-row">
+              <button class="dpad-btn" onmousedown="manualMove('left')"  ontouchstart="handleTouch(event,'left')">◀</button>
+              <button class="dpad-btn dpad-center" onclick="stopBot()">■</button>
+              <button class="dpad-btn" onmousedown="manualMove('right')" ontouchstart="handleTouch(event,'right')">▶</button>
+            </div>
+            <div class="dpad-row">
+              <div class="dpad-empty"></div>
+              <button class="dpad-btn" onmousedown="manualMove('down')"  ontouchstart="handleTouch(event,'down')">▼</button>
+              <div class="dpad-empty"></div>
+            </div>
+          </div>
+          <div class="key-hint">↑↓←→ / W A S D · SPACE=stop</div>
+
+          <!-- SHORTEST PATH PANEL -->
+          <div class="path-panel">
+            <div class="path-panel-title">📍 SHORTEST PATH GUIDE</div>
+            <div class="path-panel-row"><span class="path-lbl">OPTIMAL</span><span class="path-val cyan" id="optSteps">—</span></div>
+            <div class="path-panel-row"><span class="path-lbl">YOUR STEPS</span><span class="path-val gold" id="yourSteps">0</span></div>
+            <div class="path-panel-row"><span class="path-lbl">EXTRA</span><span class="path-val red" id="extraSteps">—</span></div>
+            <div class="path-panel-row"><span class="path-lbl">EFFICIENCY</span><span class="path-val green" id="efficiency">—</span></div>
+            <div class="path-legend">
+              <div class="pl-item"><div class="pl-dot" style="background:#00e5ff"></div>Shortest</div>
+              <div class="pl-item"><div class="pl-dot" style="background:#ff6d00"></div>Trail</div>
+              <div class="pl-item"><div class="pl-dot" style="background:#b388ff"></div>Done</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AUTO CONTROLS -->
+        <div id="autoControls" style="display:none">
+          <button class="btn btn-green" onclick="startAutoNav()">▶ START NAV</button>
+          <button class="btn btn-red"   onclick="stopBot()">■ STOP</button>
+          <div class="slider-wrap">
+            <label>SPEED — <span id="speedVal">4</span> cells/sec</label>
+            <input type="range" min="1" max="10" value="4" oninput="setSpeed(this.value)"/>
+          </div>
+          <div class="auto-info-box">
+            <div class="aib-row"><span>★</span> SubGoals auto-sorted by nearest-neighbour</div>
+            <div class="aib-row"><span>⚠</span> Far subgoals trigger priority check</div>
+            <div class="aib-row"><span>🔵</span> SubGoal btn disabled during run</div>
+          </div>
+        </div>
+      </div><!-- /drive-panel -->
+
+      <!-- MAP CANVAS -->
+      <div class="map-wrap">
+        <div class="map-header-row">
+          <div class="map-coord" id="mapCoord">GRID 10×10</div>
+          <div class="map-status-pill" id="navStatus">● IDLE</div>
+        </div>
+        <div class="map-container" id="mapContainer">
+          <canvas id="mapCanvas"></canvas>
+          <div class="corner tl"></div><div class="corner tr"></div>
+          <div class="corner bl"></div><div class="corner br"></div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="swatch" style="background:#00e676"></div>Start</div>
+          <div class="legend-item"><div class="swatch" style="background:#ffb300"></div>Goal</div>
+          <div class="legend-item"><div class="swatch" style="background:#2979ff"></div>SubGoal</div>
+          <div class="legend-item"><div class="swatch" style="background:#ff6d00"></div>★ High</div>
+          <div class="legend-item"><div class="swatch" style="background:#ff1744"></div>Obstacle</div>
+          <div class="legend-item"><div class="swatch moving-swatch"></div>Moving</div>
+          <div class="legend-item"><div class="swatch" style="background:rgba(0,229,255,0.6)"></div>Shortest</div>
+          <div class="legend-item"><div class="swatch" style="background:rgba(255,109,0,0.55)"></div>Trail</div>
+          <div class="legend-item"><div class="swatch" style="background:rgba(179,136,255,0.8)"></div>Done</div>
+        </div>
+        <div class="map-hint">CLICK GRID TO PLACE · ↑↓←→ KEYBOARD IN MANUAL MODE</div>
+      </div>
+
+    </div>
+  </div><!-- /center-wrap -->
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="panel-right">
+
+    <!-- BLUETOOTH -->
+    <div class="card">
+      <div class="card-title">▸ Bluetooth Control</div>
+
+      <div class="bt-status-row">
+        <div class="bt-dot" id="btDot"></div>
+        <span class="bt-label" id="btLabel">DISCONNECTED</span>
+      </div>
+
+      <button class="btn btn-bt" id="btnBtConnect" onclick="btConnect()">
+        <span class="bt-icon">🔵</span> CONNECT BLUETOOTH
+      </button>
+      <button class="btn btn-red" id="btnBtDisconn" onclick="btDisconnect()" style="display:none">
+        ✕ DISCONNECT
+      </button>
+
+      <div class="bt-device-name" id="btDeviceName"></div>
+
+      <!-- COMMAND DISPLAY -->
+      <div class="field-label" style="margin-top:10px">LAST COMMAND SENT</div>
+      <div class="bt-cmd-box" id="btLastCmd">—</div>
+
+      <!-- COMMAND REFERENCE -->
+      <div class="field-label" style="margin-top:10px">COMMAND FORMAT</div>
+      <div class="bt-cmd-table">
+        <div class="bct-row"><span class="bct-dir">▲ FORWARD</span><span class="bct-char">F\n</span></div>
+        <div class="bct-row"><span class="bct-dir">▼ BACKWARD</span><span class="bct-char">B</span></div>
+        <div class="bct-row"><span class="bct-dir">◀ LEFT</span><span class="bct-char">L</span></div>
+        <div class="bct-row"><span class="bct-dir">▶ RIGHT</span><span class="bct-char">R</span></div>
+        <div class="bct-row"><span class="bct-dir">■ STOP</span><span class="bct-char">S</span></div>
+      </div>
+
+      <!-- ROBOT HEADING DISPLAY -->
+      <div class="field-label" style="margin-top:10px">ROBOT HEADING</div>
+      <div class="heading-row">
+        <div class="heading-compass" id="headingCompass">↑</div>
+        <div class="heading-info">
+          <div class="heading-deg" id="headingDeg">0°</div>
+          <div class="heading-label" id="headingLabel">NORTH (facing grid-up)</div>
+        </div>
+      </div>
+
+      <div class="bt-arduino-hint">
+        💡 Pair HC-05 / HC-06 in system Bluetooth settings first, then click Connect.
+      </div>
+    </div>
+
+    <!-- TX LOG -->
+    <div class="card">
+      <div class="card-title">▸ Command Log</div>
+      <div class="log-box" id="logBox"></div>
+      <button class="btn btn-red" onclick="clearLog()" style="margin-top:6px;padding:5px">↺ CLEAR</button>
+    </div>
+
+    <!-- GYRO CALIBRATION -->
+    <div class="card">
+      <div class="card-title">▸ Gyro Calibration <span class="cal-badge">From your test</span></div>
+
+      <div class="gyro-result-box">
+        <div class="grb-title">📱 YOUR GYRO TEST RESULTS</div>
+        <div class="grb-row">
+          <span class="grb-label">RIGHT before</span>
+          <span class="grb-vals">P:-0.8 R:0.37 Y:-0.06</span>
+        </div>
+        <div class="grb-row">
+          <span class="grb-label">RIGHT after</span>
+          <span class="grb-vals grb-warn">P:-0.6 R:-7.17 Y:-10.58°</span>
+        </div>
+        <div class="grb-row grb-analysis">
+          ➜ Right Yaw actual: <b>~10.6°</b> (target 90°) — needs longer pulse
+        </div>
+        <div class="grb-row" style="margin-top:6px">
+          <span class="grb-label">LEFT before</span>
+          <span class="grb-vals">P:-1.90 R:0.37 Y:-0.33</span>
+        </div>
+        <div class="grb-row">
+          <span class="grb-label">LEFT after</span>
+          <span class="grb-vals grb-warn">P:-1.40 R:51.63° Y:-7.72</span>
+        </div>
+        <div class="grb-row grb-analysis">
+          ➜ Left Roll actual: <b>~51.6°</b> (target 90°) — overshooting, reduce
+        </div>
+      </div>
+
+      <div class="field-label" style="margin-top:10px">TURN DURATION TUNING</div>
+      <div class="cal-grid">
+        <div class="cal-row">
+          <span class="cal-label">◀ LEFT (ms)</span>
+          <input class="cal-input" id="cal_leftMs"  type="number" min="50" max="5000" step="50" value="1150"/>
+          <span class="cal-hint">↑ more=more turn</span>
+        </div>
+        <div class="cal-row">
+          <span class="cal-label">▶ RIGHT (ms)</span>
+          <input class="cal-input" id="cal_rightMs" type="number" min="50" max="5000" step="50" value="800"/>
+          <span class="cal-hint">↑ more=more turn</span>
+        </div>
+        <div class="cal-row">
+          <span class="cal-label">▲ FWD (ms)</span>
+          <input class="cal-input" id="cal_fwdMs"   type="number" min="100" max="10000" step="100" value="2000"/>
+          <span class="cal-hint">1 cell distance</span>
+        </div>
+        <div class="cal-row">
+          <span class="cal-label">▼ BWD (ms)</span>
+          <input class="cal-input" id="cal_bwdMs"   type="number" min="100" max="10000" step="100" value="2000"/>
+          <span class="cal-hint">1 cell distance</span>
+        </div>
+      </div>
+      <div class="cal-note">
+        💡 <b>Right</b>: start at <b>800ms</b>, increase by 200ms until 90° turn achieved.<br>
+        💡 <b>Left</b>: start at <b>1150ms</b>, decrease if still overshooting.
+      </div>
+      <button class="btn btn-cyan" onclick="resetCalDefaults()" style="margin-top:6px;padding:5px 8px;font-size:9px">↺ Reset Defaults</button>
+    </div>
+
+    <!-- HEADING EXPLANATION -->
+    <div class="card">
+      <div class="card-title">▸ 3D Direction Logic</div>
+      <div class="dir-explain">
+        <div class="de-row">
+          <span class="de-icon">🤖</span>
+          <span class="de-text">Robot has a physical <b>FRONT</b>. The sim tracks which grid direction it faces.</span>
+        </div>
+        <div class="de-row">
+          <span class="de-icon">↓</span>
+          <span class="de-text">Grid <b>DOWN</b> (Y+) + robot facing South → sends <b class="cyan">FORWARD</b></span>
+        </div>
+        <div class="de-row">
+          <span class="de-icon">↓</span>
+          <span class="de-text">Grid <b>DOWN</b> + robot facing North → sends <b class="cyan">BACKWARD</b></span>
+        </div>
+        <div class="de-row">
+          <span class="de-icon">→</span>
+          <span class="de-text">Grid <b>RIGHT</b> + robot facing North → sends <b class="cyan">RIGHT</b> turn then auto-FORWARD</span>
+        </div>
+        <div class="de-hint">Each move auto-sends STOP after the calibrated duration.</div>
+      </div>
+    </div>
+
+    <!-- ARDUINO CODE -->
+    <div class="card">
+      <div class="card-title">▸ Arduino BT Code</div>
+      <button class="btn btn-orange" onclick="openModal()" style="margin-bottom:0">📄 VIEW ARDUINO CODE</button>
+    </div>
+
+  </div><!-- /panel-right -->
+
+</div><!-- /layout -->
+
+<!-- ══════════════════════════════════════════════════
+     ⛔  ERROR WINDOW
+══════════════════════════════════════════════════════ -->
+<div class="err-overlay" id="errOverlay">
+  <div class="err-window">
+    <div class="err-titlebar">
+      <div class="err-tbar-dots">
+        <span class="tbar-dot td-red"></span>
+        <span class="tbar-dot td-yellow"></span>
+        <span class="tbar-dot td-green"></span>
+      </div>
+      <span class="err-tbar-title">⛔ Navigation Error</span>
+      <button class="err-tbar-close" onclick="closeErrDialog()">✕</button>
+    </div>
+    <div class="err-window-content">
+      <div class="err-icon-area">
+        <div class="err-icon-circle">🚫</div>
+        <div class="err-signal-bars">
+          <span class="sig-bar sb1"></span>
+          <span class="sig-bar sb2"></span>
+          <span class="sig-bar sb3"></span>
+        </div>
+      </div>
+      <div class="err-text-area">
+        <div class="err-headline" id="errTitle">NO SPACE TO TRAVEL</div>
+        <div class="err-description" id="errBody">All routes are blocked.</div>
+        <div class="err-info-grid">
+          <div class="err-info-row">
+            <span class="err-info-key">STATUS</span>
+            <span class="err-info-val err-val-red">● PATH BLOCKED</span>
+          </div>
+          <div class="err-info-row">
+            <span class="err-info-key">DETAILS</span>
+            <span class="err-info-val err-val-dim" id="errMeta">—</span>
+          </div>
+        </div>
+        <div class="err-suggestion">💡 Remove obstacles or click <em>Auto-Fix</em> to generate a solvable map.</div>
+      </div>
+    </div>
+    <div class="err-window-footer">
+      <button class="btn btn-red"    onclick="errClearObstacles()">↺ Clear Obstacles</button>
+      <button class="btn btn-random" onclick="errRandomFix()">🎲 Auto-Fix</button>
+      <button class="btn btn-cyan"   onclick="closeErrDialog()">✕ Dismiss</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     ⚡  SUBGOAL PRIORITY DIALOG
+══════════════════════════════════════════════════════ -->
+<div class="err-overlay" id="prioOverlay">
+  <div class="err-window prio-window">
+    <div class="err-titlebar prio-titlebar">
+      <div class="err-tbar-dots">
+        <span class="tbar-dot td-red"></span>
+        <span class="tbar-dot td-yellow"></span>
+        <span class="tbar-dot td-green"></span>
+      </div>
+      <span class="err-tbar-title">⚠ SubGoal Priority Check</span>
+      <button class="err-tbar-close" onclick="prioSkip()">✕</button>
+    </div>
+    <div class="err-window-content">
+      <div class="err-icon-area">
+        <div class="err-icon-circle" style="font-size:44px">📍</div>
+        <div style="margin-top:8px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:1px;text-align:center">FAR<br>SUBGOAL</div>
+      </div>
+      <div class="err-text-area">
+        <div class="err-headline prio-headline" id="prioTitle">SubGoal is FAR</div>
+        <div class="err-description" id="prioBody">This subgoal is significantly out of the way.</div>
+        <div class="err-info-grid">
+          <div class="err-info-row">
+            <span class="err-info-key">DISTANCE</span>
+            <span class="err-info-val" id="prioMeta" style="color:var(--gold)">—</span>
+          </div>
+        </div>
+        <div class="err-suggestion" style="background:var(--gold-bg);border-color:var(--gold-bdr)">
+          💡 Set <b style="color:var(--gold)">HIGH PRIORITY ★</b> to force include, or <b style="color:var(--red)">Skip</b> to remove from route.
+        </div>
+      </div>
+    </div>
+    <div class="err-window-footer">
+      <button class="btn btn-orange" onclick="prioProceedHigh()">★ High Priority</button>
+      <button class="btn btn-red"    onclick="prioSkip()">✕ Skip</button>
+      <button class="btn btn-cyan"   onclick="prioKeepNormal()">▶ Keep Normal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     🎉  DELIVERY COMPLETE
+══════════════════════════════════════════════════════ -->
+<div class="delivery-overlay" id="deliveryOverlay">
+  <div class="delivery-window">
+    <div class="delivery-titlebar">
+      <div class="err-tbar-dots">
+        <span class="tbar-dot td-red"></span>
+        <span class="tbar-dot td-yellow"></span>
+        <span class="tbar-dot td-green td-pulse"></span>
+      </div>
+      <span class="err-tbar-title" style="color:var(--violet)">🎉 Mission Complete</span>
+      <button class="err-tbar-close" onclick="closeDelivery()">✕</button>
+    </div>
+    <div class="delivery-window-content">
+      <div class="delivery-hero">
+        <span class="delivery-emoji">🍔</span>
+        <div>
+          <div class="delivery-title">DELIVERY COMPLETE!</div>
+          <div class="delivery-sub">Package delivered successfully</div>
+        </div>
+      </div>
+      <div class="delivery-path-note">
+        <span class="accent-violet">▓</span>
+        The <b class="accent-violet">violet path</b> on the grid shows the exact route travelled.
+      </div>
+      <div class="delivery-stats" id="deliveryStats"></div>
+    </div>
+    <div class="delivery-footer">
+      <button class="btn btn-violet" onclick="closeDelivery()" style="width:auto;min-width:160px">▶ NEW MISSION</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     ARDUINO BLUETOOTH CODE MODAL
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <h2>Arduino — Bluetooth HC-05 / HC-06 Code</h2>
+    <div class="modal-tabs">
+      <button class="mtab active"   id="tab-bt"  onclick="switchTab('bt')">Arduino Code</button>
+      <button class="mtab inactive" id="tab-wiring" onclick="switchTab('wiring')">Wiring</button>
+      <button class="mtab inactive" id="tab-cmds"   onclick="switchTab('cmds')">Commands</button>
+    </div>
+
+    <!-- ARDUINO CODE TAB -->
+    <div class="tab-content active" id="content-bt">
+      <div class="code-label">▸ Arduino — HC-05/06 Bluetooth Motor Control</div>
+<pre>#include &lt;SoftwareSerial.h&gt;
+
+// Bluetooth module pins (connect HC-05 TX → pin 10, RX → pin 11)
+SoftwareSerial BT(10, 11); // RX, TX
+
+// Motor driver pins (L298N or similar)
+// Left motor
+#define IN1 2
+#define IN2 3
+#define ENA 5   // PWM speed
+
+// Right motor
+#define IN3 4
+#define IN4 7
+#define ENB 6   // PWM speed
+
+int motorSpeed = 180;  // 0-255 PWM speed
+
+void setup() {
+  Serial.begin(9600);
+  BT.begin(9600);  // HC-05 default baud
+
+  pinMode(IN1,OUTPUT); pinMode(IN2,OUTPUT); pinMode(ENA,OUTPUT);
+  pinMode(IN3,OUTPUT); pinMode(IN4,OUTPUT); pinMode(ENB,OUTPUT);
+
+  Serial.println("Bluetooth Ready");
+}
+
+void loop() {
+  if (BT.available()) {
+    String cmd = BT.readStringUntil('\n');
+    cmd.trim();
+    Serial.println("CMD: " + cmd);
+    handleCommand(cmd);
+  }
+}
+
+void handleCommand(String cmd) {
+  // Supports: FORWARD, BACKWARD, LEFT, RIGHT, STOP
+  // Also supports JSON: {"cmd":"FORWARD"}
+  // Also supports single char: F, B, L, R, S
+
+  if (cmd == "FORWARD" || cmd == "F" || cmd.indexOf("FORWARD") &gt;= 0) {
+    moveForward();
+  } else if (cmd == "BACKWARD" || cmd == "B" || cmd.indexOf("BACKWARD") &gt;= 0) {
+    moveBackward();
+  } else if (cmd == "LEFT" || cmd == "L" || cmd.indexOf("LEFT") &gt;= 0) {
+    turnLeft();
+  } else if (cmd == "RIGHT" || cmd == "R" || cmd.indexOf("RIGHT") &gt;= 0) {
+    turnRight();
+  } else if (cmd == "STOP" || cmd == "S" || cmd.indexOf("STOP") &gt;= 0) {
+    stopMotors();
+  }
+}
+
+void moveForward() {
+  digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+  analogWrite(ENA, motorSpeed); analogWrite(ENB, motorSpeed);
+}
+
+void moveBackward() {
+  digitalWrite(IN1, LOW); digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW); digitalWrite(IN4, HIGH);
+  analogWrite(ENA, motorSpeed); analogWrite(ENB, motorSpeed);
+}
+
+void turnLeft() {
+  digitalWrite(IN1, LOW);  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+  analogWrite(ENA, motorSpeed); analogWrite(ENB, motorSpeed);
+}
+
+void turnRight() {
+  digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, motorSpeed); analogWrite(ENB, motorSpeed);
+}
+
+void stopMotors() {
+  digitalWrite(IN1,LOW); digitalWrite(IN2,LOW);
+  digitalWrite(IN3,LOW); digitalWrite(IN4,LOW);
+  analogWrite(ENA, 0);   analogWrite(ENB, 0);
+}</pre>
+    </div>
+
+    <!-- WIRING TAB -->
+    <div class="tab-content" id="content-wiring">
+      <div class="code-label">▸ HC-05 / HC-06 Wiring</div>
+<pre>HC-05/HC-06     Arduino Uno/Nano
+─────────────────────────────────
+VCC         →   5V
+GND         →   GND
+TXD         →   Pin 10 (SoftwareSerial RX)
+RXD         →   Pin 11 (SoftwareSerial TX)
+                (use 1kΩ + 2kΩ voltage divider on RXD if 5V board)
+
+L298N Motor Driver
+─────────────────────────────────
+IN1         →   Arduino Pin 2
+IN2         →   Arduino Pin 3
+ENA         →   Arduino Pin 5 (PWM)
+IN3         →   Arduino Pin 4
+IN4         →   Arduino Pin 7
+ENB         →   Arduino Pin 6 (PWM)
+12V         →   Battery +
+GND         →   Battery − & Arduino GND
+
+Pairing Steps
+─────────────────────────────────
+1. Power on HC-05 (LED blinks fast = not paired)
+2. Go to System Bluetooth Settings on your device
+3. Pair with "HC-05" or "HC-06" — default PIN: 1234 or 0000
+4. LED blinks slow = paired
+5. Click "CONNECT BLUETOOTH" in the sim</pre>
+    </div>
+
+    <!-- COMMANDS TAB -->
+    <div class="tab-content" id="content-cmds">
+      <div class="code-label">▸ Command Reference</div>
+<pre>The simulation sends commands based on selected format:
+
+FORMAT: Plain Text
+  FORWARD    — move forward
+  BACKWARD   — move backward
+  LEFT       — turn left
+  RIGHT      — turn right
+  STOP       — stop all motors
+
+FORMAT: JSON
+  {"cmd":"FORWARD"}
+  {"cmd":"BACKWARD"}
+  {"cmd":"LEFT"}
+  {"cmd":"RIGHT"}
+  {"cmd":"STOP"}
+
+FORMAT: Single Char
+  F  — FORWARD
+  B  — BACKWARD
+  L  — LEFT
+  R  — RIGHT
+  S  — STOP
+
+Duration Control
+  The sim sends FORWARD/BACKWARD for [FB duration] seconds,
+  LEFT/RIGHT for [LR duration] seconds, then auto-sends STOP.
+  Tune these values to match your robot's physical movement
+  so 1 grid cell ≈ 1 step of the bot.
+
+Movement Timing Example:
+  FB Duration = 0.5s  →  bot moves ~20cm forward
+  LR Duration = 0.4s  →  bot rotates ~90°
+  Stop Delay  = 0.1s  →  gap between commands</pre>
+    </div>
+
+    <button class="btn btn-red" onclick="closeModal()" style="margin-top:14px">✕ CLOSE</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
