@@ -1,6 +1,6 @@
 <div align="center">
 
-# Path2Plate
+# Path2Plate-AI
 
 ### Intelligent Indoor Food Delivery
 
